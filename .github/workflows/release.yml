@@ -9,6 +9,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  packages: write
 
 jobs:
   release_please:
@@ -123,24 +124,6 @@ jobs:
           generate_checksums "SHA1" "sha1sum"
           generate_checksums "SHA256" "sha256sum"
 
-      - name: GitHub OIDC Auth
-        if: ${{ steps.release.outputs.release_created == 'true' || steps.release.outputs.prs_created == 'true' }}
-        uses: aws-actions/configure-aws-credentials@v5.1.1
-        with:
-          aws-region: ap-southeast-1
-          role-to-assume: arn:aws:iam::${{ secrets.SHARED_SERVICES_AWS_ACCOUNT_ID }}:role/supabase-github-oidc-role
-          role-session-name: shared-services-jump
-
-      - name: Assume destination role
-        uses: aws-actions/configure-aws-credentials@v5.1.1
-        if: ${{ steps.release.outputs.release_created == 'true' || steps.release.outputs.prs_created == 'true' }}
-        with:
-          aws-region: ap-southeast-1
-          role-to-assume: arn:aws:iam::${{ secrets.SHARED_SERVICES_AWS_ACCOUNT_ID }}:role/supabase-auth-artifacts-role-7656c95
-          role-skip-session-tagging: true
-          role-session-name: upload-assets
-          role-chaining: true
-
       - name: Upload release artifacts
         if: ${{ steps.release.outputs.release_created == 'true' || steps.release.outputs.prs_created == 'true' }}
         run: |
@@ -189,9 +172,6 @@ jobs:
           GH_TOKEN='${{ github.token }}' gh release edit $RELEASE_NAME -n "$FULL_NOTES"
 
           GH_TOKEN='${{ github.token }}' gh release upload $RELEASE_NAME ./auth-v$RELEASE_VERSION-x86.tar.gz ./auth-v$RELEASE_VERSION-arm64.tar.gz ./auth-v$RELEASE_VERSION-arm64.tar.xz
-
-          # Upload to Supabase internal bucket
-          aws s3 cp ./auth-v$RELEASE_VERSION-arm64.tar.xz s3://supabase-internal-artifacts/auth/$RELEASE_VERSION/
 
   publish:
     needs:
