@@ -267,15 +267,15 @@ func getBooleanFieldByPath(obj map[string]interface{}, path string, fallback boo
 // OIDCDiscovery represents the OIDC Discovery document
 // https://openid.net/specs/openid-connect-discovery-1_0.html
 type OIDCDiscovery struct {
-	Issuer                            string `json:"issuer"`
-	AuthorizationEndpoint             string `json:"authorization_endpoint"`
-	TokenEndpoint                     string `json:"token_endpoint"`
-	UserinfoEndpoint                  string `json:"userinfo_endpoint"`
-	JWKSURI                           string `json:"jwks_uri"`
-	ScopesSupported                   []string `json:"scopes_supported"`
-	ResponseTypesSupported            []string `json:"response_types_supported"`
-	SubjectTypesSupported             []string `json:"subject_types_supported"`
-	IDTokenSigningAlgValuesSupported  []string `json:"id_token_signing_alg_values_supported"`
+	Issuer                           string   `json:"issuer"`
+	AuthorizationEndpoint            string   `json:"authorization_endpoint"`
+	TokenEndpoint                    string   `json:"token_endpoint"`
+	UserinfoEndpoint                 string   `json:"userinfo_endpoint"`
+	JWKSURI                          string   `json:"jwks_uri"`
+	ScopesSupported                  []string `json:"scopes_supported"`
+	ResponseTypesSupported           []string `json:"response_types_supported"`
+	SubjectTypesSupported            []string `json:"subject_types_supported"`
+	IDTokenSigningAlgValuesSupported []string `json:"id_token_signing_alg_values_supported"`
 }
 
 // NewGenericProvider creates an OAuth provider according to the config specified by the user.
