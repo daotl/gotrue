@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/supabase/auth/internal/conf"
 	"github.com/supabase/auth/internal/utilities"
@@ -70,107 +71,107 @@ func (p genericProvider) GetUserData(_ctx context.Context, tok *oauth2.Token) (*
 	// Read user data as specified in the JSON mapping
 	mapping := p.userDataMapping
 
-	email, err := getStringFieldByPath(u, mapping["Email"], "")
+	email, err := getStringFieldByPath(u, getMappingField(mapping, "Email"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	emailVerified, err := getBooleanFieldByPath(u, mapping["EmailVerified"], email != "")
+	emailVerified, err := getBooleanFieldByPath(u, getMappingField(mapping, "EmailVerified"), email != "")
 	if err != nil {
 		return nil, err
 	}
 
-	emailPrimary, err := getBooleanFieldByPath(u, mapping["EmailPrimary"], email != "")
+	emailPrimary, err := getBooleanFieldByPath(u, getMappingField(mapping, "EmailPrimary"), email != "")
 	if err != nil {
 		return nil, err
 	}
 
-	issuer, err := getStringFieldByPath(u, mapping["Issuer"], p.issuer)
+	issuer, err := getStringFieldByPath(u, getMappingField(mapping, "Issuer"), p.issuer)
 	if err != nil {
 		return nil, err
 	}
 
-	subject, err := getStringFieldByPath(u, mapping["Subject"], "")
+	subject, err := getStringFieldByPath(u, getMappingField(mapping, "Subject"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	name, err := getStringFieldByPath(u, mapping["Name"], "")
+	name, err := getStringFieldByPath(u, getMappingField(mapping, "Name"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	familyName, err := getStringFieldByPath(u, mapping["FamilyName"], "")
+	familyName, err := getStringFieldByPath(u, getMappingField(mapping, "FamilyName"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	givenName, err := getStringFieldByPath(u, mapping["GivenName"], "")
+	givenName, err := getStringFieldByPath(u, getMappingField(mapping, "GivenName"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	middleName, err := getStringFieldByPath(u, mapping["MiddleName"], "")
+	middleName, err := getStringFieldByPath(u, getMappingField(mapping, "MiddleName"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	nickName, err := getStringFieldByPath(u, mapping["NickName"], "")
+	nickName, err := getStringFieldByPath(u, getMappingField(mapping, "NickName"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	preferredUsername, err := getStringFieldByPath(u, mapping["PreferredUsername"], "")
+	preferredUsername, err := getStringFieldByPath(u, getMappingField(mapping, "PreferredUsername"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	profile, err := getStringFieldByPath(u, mapping["Profile"], "")
+	profile, err := getStringFieldByPath(u, getMappingField(mapping, "Profile"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	picture, err := getStringFieldByPath(u, mapping["Picture"], "")
+	picture, err := getStringFieldByPath(u, getMappingField(mapping, "Picture"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	website, err := getStringFieldByPath(u, mapping["Website"], "")
+	website, err := getStringFieldByPath(u, getMappingField(mapping, "Website"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	gender, err := getStringFieldByPath(u, mapping["Gender"], "")
+	gender, err := getStringFieldByPath(u, getMappingField(mapping, "Gender"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	birthdate, err := getStringFieldByPath(u, mapping["Birthdate"], "")
+	birthdate, err := getStringFieldByPath(u, getMappingField(mapping, "Birthdate"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	zoneInfo, err := getStringFieldByPath(u, mapping["ZoneInfo"], "")
+	zoneInfo, err := getStringFieldByPath(u, getMappingField(mapping, "ZoneInfo"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	locale, err := getStringFieldByPath(u, mapping["Locale"], "")
+	locale, err := getStringFieldByPath(u, getMappingField(mapping, "Locale"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	updatedAt, err := getStringFieldByPath(u, mapping["UpdatedAt"], "")
+	updatedAt, err := getStringFieldByPath(u, getMappingField(mapping, "UpdatedAt"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	phone, err := getStringFieldByPath(u, mapping["Phone"], "")
+	phone, err := getStringFieldByPath(u, getMappingField(mapping, "Phone"), "")
 	if err != nil {
 		return nil, err
 	}
 
-	phoneVerified, err := getBooleanFieldByPath(u, mapping["PhoneVerified"], phone != "")
+	phoneVerified, err := getBooleanFieldByPath(u, getMappingField(mapping, "PhoneVerified"), phone != "")
 	if err != nil {
 		return nil, err
 	}
@@ -250,6 +251,33 @@ func getStringFieldByPath(obj map[string]interface{}, path string, fallback stri
 	} else {
 		return "", fmt.Errorf("unable to read field as string: %q %q", path, value)
 	}
+}
+
+// getMappingField returns the configured path from userDataMapping,
+// or falls back to the snake_case version of the field name if not configured.
+func getMappingField(mapping map[string]string, field string) string {
+	if path, ok := mapping[field]; ok && path != "" {
+		return path
+	}
+	// Default to snake_case field name
+	return toSnakeCase(field)
+}
+
+// toSnakeCase converts a PascalCase string to snake_case.
+// For example: EmailVerified -> email_verified, PhoneVerified -> phone_verified
+func toSnakeCase(s string) string {
+	var result strings.Builder
+	for i, r := range s {
+		if unicode.IsUpper(r) {
+			if i > 0 {
+				result.WriteRune('_')
+			}
+			result.WriteRune(unicode.ToLower(r))
+		} else {
+			result.WriteRune(r)
+		}
+	}
+	return result.String()
 }
 
 func getBooleanFieldByPath(obj map[string]interface{}, path string, fallback bool) (bool, error) {

@@ -513,6 +513,14 @@ The `GOTRUE_EXTERNAL_GENERIC1_USER_DATA_MAPPING` setting maps fields from the OA
 GOTRUE_EXTERNAL_GENERIC1_USER_DATA_MAPPING=Email:email,Name:name,Avatar:picture,Subject:id
 ```
 
+If a field is not explicitly configured in `USER_DATA_MAPPING`, the provider will automatically look for the snake_case version of the field name. For example:
+- `EmailVerified` defaults to looking for `email_verified`
+- `PhoneVerified` defaults to looking for `phone_verified`
+- `FamilyName` defaults to looking for `family_name`
+- `GivenName` defaults to looking for `given_name`
+
+This default behavior follows the OIDC standard claim names, so most OIDC-compliant providers will work without any explicit mapping configuration.
+
 Supported GotrueClaim names:
 - `Email` - user's email address
 - `EmailVerified` - whether email is verified
